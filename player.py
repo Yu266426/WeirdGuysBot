@@ -194,7 +194,7 @@ class Player:
 				embed = discord.Embed(
 					title=f"{self.member.name} collected a snowball",
 					description=f"{self.member.mention} are up to `{self.stats.num_snowballs}` balls",
-					color=discord.Color.blue()
+					color=discord.Color.teal()
 				)
 
 				await ctx.reply(embed=embed, allowed_mentions=NO_PING)
