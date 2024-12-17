@@ -5,6 +5,8 @@ import discord
 with open("private.txt", "r") as private:
 	BOT_API = private.read()
 
+COMMAND_PREFIX = "!"
+
 WEIRD_GUYS_GUILD_ID = 688195144943796294
 
 IGNORED_MEMBERS = (

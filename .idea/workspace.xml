@@ -5,8 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1edfc121-eebf-48b7-87e8-03e5c3b47a03" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/graphics.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/player_stats.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/team.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/consts.py" beforeDir="false" afterPath="$PROJECT_DIR$/consts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/1053105804267495464.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/1159226791131611166.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/249287380056539136.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/337698232543215627.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/342347468362481675.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/406910437276516374.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/442141273017679883.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/447177858297757697.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/454374555771994132.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/455044592933535754.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/466459135593152512.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/489239218544181248.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/494165968747233301.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/494269438095392770.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/497493090437693440.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/517544868239769610.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/528297083581497347.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/584870245840191529.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/603357692400107521.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/609090168074403851.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/635310332692267018.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/673021731144990720.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/687503461901664296.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/688489676931334375.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/688546690902392832.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/698259558291865620.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/762214964160626738.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/771239419080212481.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/player.py" afterDir="false" />
     </list>
@@ -32,6 +63,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Python.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.player.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
@@ -48,6 +80,7 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.12 (WeirdGuysBot)" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
