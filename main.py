@@ -3,8 +3,8 @@ import typing
 import discord
 from discord.ext import commands
 
-from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX
-from graphics import CustomHelpCommand
+from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOUR, SIGN_UP_COMMAND_NAME
+from graphics import CustomHelpCommand, TeamSignUpView
 from player import Player
 from team import TeamGroup
 
@@ -24,14 +24,16 @@ async def predicate(ctx: commands.Context):
 
 @bot.event
 async def on_ready():
-	print(f'Logged in as {bot.user}')
-
 	weird_guys_guild = bot.get_guild(WEIRD_GUYS_GUILD_ID)
 
 	# Init members as players
 	for member in weird_guys_guild.members:
 		if not member.bot and member.name not in IGNORED_MEMBERS:
 			teams.add_player(Player(member))
+
+	bot.add_view(TeamSignUpView(teams))
+
+	print(f'Logged in as {bot.user}')
 
 
 @bot.command()
@@ -40,6 +42,12 @@ async def ping(ctx: commands.Context):
 	message += f"The author is owner: {await bot.is_owner(ctx.author)}\n"
 	message += f"The author is on team: {teams.get_player(ctx.author).stats.team_id}"
 	await ctx.send(message)
+
+
+@bot.command(name=SIGN_UP_COMMAND_NAME)
+@commands.is_owner()
+async def sign_up(ctx: commands.Context):
+	await ctx.send("Press the button to sign up as active member: ", view=TeamSignUpView(teams))
 
 
 @bot.command(help="Collects a snowball")
@@ -65,7 +73,7 @@ async def leader(ctx: commands.Context):
 
 	embed = discord.Embed(
 		title="Leaderboard",
-		color=discord.Color.blurple()
+		color=STATS_COLOUR
 	)
 
 	for index, player in enumerate(sorted_players[:3]):
@@ -77,7 +85,7 @@ async def leader(ctx: commands.Context):
 			value="", inline=False
 		)
 
-		player.embed_stats(embed, include_xp_stats=False)
+		player.embed_stats(ctx, embed, include_xp_stats=False)
 
 	await ctx.send(embed=embed, allowed_mentions=NO_PING)
 
@@ -85,28 +93,40 @@ async def leader(ctx: commands.Context):
 @bot.command(
 	help="Gives the stats of player",
 	usage="""Usage:
-  !stats          -> Your stats
-  !stats <member> -> Stats of specified member"""
+  !stats           -> Your stats
+  !stats <member>  -> Stats of specified member
+  !stats <team_id> -> Stats of specified team"""
 )
-async def stats(ctx: commands.Context, member: typing.Optional[typing.Union[discord.Member, str]]):
-	if isinstance(member, discord.Member) or member is None:
-		if member is None:
-			member = ctx.author
+async def stats(ctx: commands.Context, target: typing.Optional[typing.Union[discord.Member, str]]):
+	if isinstance(target, discord.Member) or target is None:
+		if target is None:
+			target = ctx.author
 
-		if not teams.check_is_player(member):
-			await ctx.send(f"Unable to process {member}")
+		if not teams.check_is_player(target):
+			await ctx.send(f"Unable to process {target}")
 			return
 
 		embed = discord.Embed(
-			title=f"{member.nick}'s stats:\n",
-			color=discord.Color.blurple()
+			title=f"{target.nick}'s stats:\n",
+			color=STATS_COLOUR
 		)
 
-		teams.get_player(member).embed_stats(embed)
+		teams.get_player(target).embed_stats(ctx, embed)
 
 		await ctx.send(embed=embed, allowed_mentions=NO_PING)
 	else:
-		await ctx.send(f"Could not find user {member}", ephemeral=True)
+		if target.isnumeric() and teams.is_team(int(target)):
+			embed = discord.Embed(
+				title=f"Team `{target}`",
+				color=STATS_COLOUR
+			)
+
+			teams.get_team(int(target)).embed_stats(embed)
+
+			await ctx.send(embed=embed, allowed_mentions=NO_PING)
+
+		else:
+			await ctx.send(f"Could not find user {target}", ephemeral=True)
 
 
 bot.run(BOT_API)

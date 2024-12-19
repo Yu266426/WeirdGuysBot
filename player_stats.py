@@ -57,6 +57,7 @@ class PlayerStats:
 
 		self._member = member
 		self._team_id = 0
+		self._active = False
 
 		self._level = 1
 		self._xp = 0
@@ -72,9 +73,8 @@ class PlayerStats:
 		self._num_hits = 0
 		self._num_been_hit = 0
 
-		# TODO: Implement
-		self._hit_by: dict["Player", int] = {}
-		self._has_hit: dict["Player", int] = {}
+		self._hit_by: dict[int, int] = {}
+		self._has_hit: dict[int, int] = {}
 
 		self.load()
 
@@ -82,12 +82,15 @@ class PlayerStats:
 	def _default_data() -> dict:
 		data = {
 			"team_id": 0,
+			"active": False,
 			"level": 1,
 			"xp": 0,
 			"snowball_count": 0,
 			"num_thrown": 0,
 			"num_hits": 0,
-			"num_been_hit": 0
+			"num_been_hit": 0,
+			"hit_by": {},
+			"has_hit": {}
 		}
 
 		data.update(PlayerStats._STATS_FOR_LEVEL[1])
@@ -108,6 +111,7 @@ class PlayerStats:
 			data = json.load(file)
 
 		data["team_id"] = self._team_id
+		data["active"] = self._active
 
 		data["level"] = self._level
 		data["xp"] = self._xp
@@ -121,6 +125,9 @@ class PlayerStats:
 		data["num_thrown"] = self._num_thrown
 		data["num_hits"] = self._num_hits
 		data["num_been_hit"] = self._num_been_hit
+
+		data["hit_by"] = self._hit_by
+		data["has_hit"] = self._has_hit
 
 		with open(file_path, "w") as file:
 			file.write(json.dumps(data))
@@ -138,6 +145,7 @@ class PlayerStats:
 			data = json.load(file)
 
 		self._team_id = data["team_id"]
+		self._active = data["active"]
 
 		self._level = data["level"]
 		self._xp = data["xp"]
@@ -152,9 +160,20 @@ class PlayerStats:
 		self._num_hits = data["num_hits"]
 		self._num_been_hit = data["num_been_hit"]
 
+		self._hit_by = {int(key): value for key, value in data["hit_by"].items()}
+		self._has_hit = {int(key): value for key, value in data["has_hit"].items()}
+
+	def set_active(self, value: bool = True):
+		self._active = value
+		self.save()
+
 	@property
 	def team_id(self) -> int:
 		return self._team_id
+
+	@property
+	def active(self) -> bool:
+		return self._active
 
 	@property
 	def level(self) -> int:
@@ -200,6 +219,18 @@ class PlayerStats:
 	def num_been_hit(self) -> int:
 		return self._num_been_hit
 
+	def get_hit_by_most(self) -> tuple[int, int]:
+		if len(self._hit_by) != 0:
+			return max(self._hit_by.items(), key=lambda e: e[1])
+
+		return 0, 0
+
+	def get_has_hit_most(self) -> tuple[int, int]:
+		if len(self._has_hit) != 0:
+			return max(self._has_hit.items(), key=lambda e: e[1])
+
+		return 0, 0
+
 	def add_xp(self, amount: int) -> bool:
 		if self._level >= self.TOTAL_LEVELS:
 			return False
@@ -237,31 +268,42 @@ class PlayerStats:
 			(time.time() - last_collect_time)
 		)
 
-	def check_will_hit(self) -> bool:
-		return random.random() < self._accuracy_percentage / 100
-
-	def hit(self, is_crit: bool):
+	def hit(self, is_crit: bool, player: "Player"):
 		self._num_been_hit += 1
+
+		if player.member.id not in self._hit_by:
+			self._hit_by[player.member.id] = 0
+
+		self._hit_by[player.member.id] += 1
 
 		if is_crit:
 			self._snowball_count = 0
 
 		self.save()
 
-	def throw(self) -> bool:
+	def throw(self, player: "Player") -> tuple[bool, bool]:
 		"""
 		:return: Bool (is crit)
 		"""
 
 		self._snowball_count -= 1
 		self._num_thrown += 1
+
+		is_successful = random.random() < self._accuracy_percentage / 100
+		is_critical = random.random() < self._crit_percentage / 100
+
+		if is_successful:
+			self._num_hits += 1
+
+			# Set has hit
+			if player.member.id not in self._has_hit:
+				self._has_hit[player.member.id] = 0
+
+			self._has_hit[player.member.id] += 1
+
 		self.save()
 
-		return random.random() < self._crit_percentage / 100
-
-	def mark_successful_throw(self):
-		self._num_hits += 1
-		self.save()
+		return is_successful, is_critical
 
 	def add_snowball(self) -> bool:
 		if self._snowball_count < self._max_snowballs:

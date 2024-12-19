@@ -1,1 +1,1 @@
-{"team_id": 0, "level": 2, "xp": 2, "snowball_count": 3, "num_thrown": 5, "num_hits": 5, "num_been_hit": 0, "max_snowballs": 4, "collect_cooldown": 4, "accuracy": 75, "crit": 70}
+{"team_id": 0, "active": true, "level": 1, "xp": 0, "snowball_count": 0, "num_thrown": 0, "num_hits": 0, "num_been_hit": 0, "hit_by": {}, "has_hit": {}, "max_snowballs": 3, "collect_cooldown": 5, "accuracy": 70, "crit": 60}

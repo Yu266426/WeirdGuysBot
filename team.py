@@ -10,9 +10,6 @@ class TeamGroup:
 
 		self.teams: dict[int, "Team"] = {0: Team(allow_friendly_fire=True)}  # 0 is default team
 
-	def get_player(self, member: discord.Member) -> Player:
-		return self.players[member]
-
 	def add_player(self, player: Player):
 		if player.member not in self.players:
 			self.players[player.member] = player
@@ -22,11 +19,23 @@ class TeamGroup:
 	def remove_player(self, player: Player):
 		self.teams[player.stats.team_id].remove_player(player)
 
+	def mark_member_active(self, member: discord.Member):
+		self.players[member].stats.set_active()
+
+	def get_player(self, member: discord.Member) -> Player:
+		return self.players[member]
+
 	def check_is_player(self, member: discord.Member) -> bool:
 		return member in self.players
 
 	def get_sorted_players(self) -> list[Player]:
 		return sorted(self.players.values(), key=lambda e: e.stats.num_hits, reverse=True)
+
+	def is_team(self, team_id: int) -> bool:
+		return team_id in self.teams
+
+	def get_team(self, team_id: int) -> "Team":
+		return self.teams[team_id]
 
 	def get_team_of(self, member: discord.Member) -> "Team":
 		return self.teams[self.get_player(member).stats.team_id]
@@ -61,8 +70,19 @@ class Team:
 
 		self.players: set[Player] = set()
 
+	def embed_stats(self, embed: discord.Embed):
+		message = f"Total hits: `{self.get_total_hits()}`"
+
+		embed.add_field(name="Team Stats:", value=message)
+
 	def add_player(self, player: Player):
 		self.players.add(player)
 
 	def remove_player(self, player: Player):
 		self.players.remove(player)
+
+	def get_total_hits(self) -> int:
+		total_hits = 0
+		for player in self.players:
+			total_hits += player.stats.num_hits
+		return total_hits
