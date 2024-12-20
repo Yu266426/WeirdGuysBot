@@ -142,7 +142,7 @@ class Team:
 
 		embed.add_field(name="Team Stats:", value=stats_message)
 		embed.add_field(name="Team Bonuses:", value=bonus_message)
-		embed.add_field(name="Snowman:", value=stage_progress_message)
+		embed.add_field(name="Snowman:", value=stage_progress_message, inline=False)
 
 	def _calculate_stage_index(self):
 		stage_index = 0

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import discord
 from discord.ext import commands
 
-from consts import NO_PING, CRITICAL_HIT_COLOR, HIT_COLOR, MISS_COLOR, COLLECT_COLOR
+from consts import NO_PING, CRITICAL_HIT_COLOR, HIT_COLOR, MISS_COLOR, COLLECT_COLOR, LEVEL_UP_COLOR
 from graphics import xp_bar
 from player_stats import PlayerStats
 
@@ -122,7 +122,12 @@ class Player:
 			)
 
 			if leveled_up:
-				await ctx.send(f"{self.member.mention} has leveled up!", allowed_mentions=NO_PING)
+				level_up_embed = discord.Embed(
+					title=f"{self.member.name} has leveled up!",
+					description=f"{self.member.mention} is now level `{self.stats.level}`.",
+					color=LEVEL_UP_COLOR
+				)
+				await ctx.reply(embed=level_up_embed, allowed_mentions=NO_PING)
 
 		else:
 			embed = discord.Embed(

@@ -26,10 +26,11 @@ NO_PING = discord.AllowedMentions(everyone=False, users=False, roles=False)
 COLLECT_COLOR = discord.Color.teal()
 
 HIT_COLOR = discord.Color.blue()
-CRITICAL_HIT_COLOR = discord.Color.blurple()
+CRITICAL_HIT_COLOR = discord.Color.from_rgb(136, 90, 209)
 MISS_COLOR = discord.Color.red()
 
 STATS_COLOR = discord.Color.blurple()
+LEVEL_UP_COLOR = discord.Color.from_rgb(48, 191, 112)
 
 TEAMS_COLOR = discord.Color.dark_gold()
 HELP_COLOR = discord.Color.greyple()
