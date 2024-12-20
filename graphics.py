@@ -4,7 +4,7 @@ from typing import Mapping, Optional, List, Any, TYPE_CHECKING
 import discord
 from discord.ext import commands
 
-from consts import COMMAND_PREFIX, SIGN_UP_COMMAND_NAME
+from consts import COMMAND_PREFIX, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, HELP_COLOR
 
 if TYPE_CHECKING:
 	from team import TeamGroup
@@ -21,7 +21,7 @@ class CustomHelpCommand(commands.HelpCommand):
 		total_commands = [e for bot_commands in mapping.values() for e in bot_commands]
 
 		for index, command in enumerate(total_commands):
-			if command.name == SIGN_UP_COMMAND_NAME:
+			if command.name in (SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME):
 				continue
 
 			tail = ""
@@ -41,7 +41,7 @@ class CustomHelpCommand(commands.HelpCommand):
 		embed = discord.Embed(
 			title=f"Command: {command.name}",
 			description=command.help or "No description provided.",
-			color=discord.Color.greyple()
+			color=HELP_COLOR
 		)
 		# Show arguments dynamically
 		embed.add_field(

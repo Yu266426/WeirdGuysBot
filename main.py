@@ -1,9 +1,10 @@
+import random
 import typing
 
 import discord
 from discord.ext import commands
 
-from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOUR, SIGN_UP_COMMAND_NAME
+from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOR, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, COLLECT_COMMAND_NAME, THROW_COMMAND_NAME, LEADERBOARD_COMMAND_NAME, STATS_COMMAND_NAME, TEAMS_COLOR
 from graphics import CustomHelpCommand, TeamSignUpView
 from player import Player
 from team import TeamGroup
@@ -50,12 +51,96 @@ async def sign_up(ctx: commands.Context):
 	await ctx.send("Press the button to sign up as active member: ", view=TeamSignUpView(teams))
 
 
-@bot.command(help="Collects a snowball")
+@bot.command(name=DISTRIBUTE_MEMBERS_COMMAND_NAME)
+@commands.is_owner()
+async def distribute_members(ctx: commands.Context):
+	# Add active members
+	active_players = teams.get_active_players()
+	num_active_members = len(active_players)
+
+	num_team_1 = num_active_members // 2
+
+	# Randomly distribute odd member if needed
+	if num_active_members % 2 != 0:
+		if random.random() > 0.5:
+			num_team_1 += 1
+
+	team_1_active_players: list[Player] = random.sample(active_players, num_team_1)
+	for player in team_1_active_players:
+		teams.remove_player(player)
+		player.stats.set_team(1)
+		teams.add_player(player)
+
+		active_players.remove(player)
+
+	for player in active_players:
+		teams.remove_player(player)
+		player.stats.set_team(2)
+		teams.add_player(player)
+
+	# Add remaining members
+	non_active_players = teams.get_non_active_players()
+	num_non_active_members = len(non_active_players)
+
+	num_team_1 = num_non_active_members // 2
+
+	# Randomly distribute odd member if needed
+	if num_non_active_members % 2 != 0:
+		if random.random() > 0.5:
+			num_team_1 += 1
+
+	team_1_non_active_players: list[Player] = random.sample(non_active_players, num_team_1)
+
+	for player in team_1_non_active_players:
+		teams.remove_player(player)
+		player.stats.set_team(1)
+		teams.add_player(player)
+
+		print(player.member.name)
+		non_active_players.remove(player)
+
+	for player in non_active_players:
+		teams.remove_player(player)
+		player.stats.set_team(2)
+		teams.add_player(player)
+
+	team_1_message = ""
+	for player in sorted(teams.get_players_on_team(1), key=lambda e: e.stats.active, reverse=True):
+		if player.stats.active:
+			team_1_message += "* "
+
+		team_1_message += f"{player.member.mention}\n"
+
+	team_1_embed = discord.Embed(
+		title="Players on team `1`",
+		description=team_1_message,
+		color=TEAMS_COLOR
+	)
+
+	team_2_message = ""
+	for player in sorted(teams.get_players_on_team(2), key=lambda e: e.stats.active, reverse=True):
+		if player.stats.active:
+			team_2_message += "* "
+
+		team_2_message += f"{player.member.mention}\n"
+
+	team_2_embed = discord.Embed(
+		title="Players on team `2`",
+		description=team_2_message,
+		color=TEAMS_COLOR
+	)
+
+	await ctx.send(embed=team_1_embed, allowed_mentions=NO_PING)
+	await ctx.send(embed=team_2_embed, allowed_mentions=NO_PING)
+
+
+@bot.command(name=COLLECT_COMMAND_NAME, help="Collects a snowball")
 async def collect(ctx: commands.Context):
 	await teams.collect_for(ctx, ctx.author)
 
 
 @bot.command(
+	name=THROW_COMMAND_NAME,
 	help="Throws snowball at target",
 	usage="""Usage:
   !throw <member>"""
@@ -67,13 +152,13 @@ async def throw(ctx: commands.Context, *, member: typing.Union[discord.Member, s
 		await ctx.send(f"Could not find user {member}")
 
 
-@bot.command(help="Prints top 3 player stats")
+@bot.command(name=LEADERBOARD_COMMAND_NAME, help="Prints top 3 player stats")
 async def leader(ctx: commands.Context):
 	sorted_players = teams.get_sorted_players()
 
 	embed = discord.Embed(
 		title="Leaderboard",
-		color=STATS_COLOUR
+		color=STATS_COLOR
 	)
 
 	for index, player in enumerate(sorted_players[:3]):
@@ -91,6 +176,7 @@ async def leader(ctx: commands.Context):
 
 
 @bot.command(
+	name=STATS_COMMAND_NAME,
 	help="Gives the stats of player",
 	usage="""Usage:
   !stats           -> Your stats
@@ -108,7 +194,7 @@ async def stats(ctx: commands.Context, target: typing.Optional[typing.Union[disc
 
 		embed = discord.Embed(
 			title=f"{target.nick}'s stats:\n",
-			color=STATS_COLOUR
+			color=STATS_COLOR
 		)
 
 		teams.get_player(target).embed_stats(ctx, embed)
@@ -118,7 +204,7 @@ async def stats(ctx: commands.Context, target: typing.Optional[typing.Union[disc
 		if target.isnumeric() and teams.is_team(int(target)):
 			embed = discord.Embed(
 				title=f"Team `{target}`",
-				color=STATS_COLOUR
+				color=STATS_COLOR
 			)
 
 			teams.get_team(int(target)).embed_stats(embed)
@@ -126,7 +212,7 @@ async def stats(ctx: commands.Context, target: typing.Optional[typing.Union[disc
 			await ctx.send(embed=embed, allowed_mentions=NO_PING)
 
 		else:
-			await ctx.send(f"Could not find user {target}", ephemeral=True)
+			await ctx.send(f"Could not find target {target}", ephemeral=True)
 
 
 bot.run(BOT_API)

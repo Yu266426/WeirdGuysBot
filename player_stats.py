@@ -167,6 +167,10 @@ class PlayerStats:
 		self._active = value
 		self.save()
 
+	def set_team(self, team_id: int):
+		self._team_id = team_id
+		self.save()
+
 	@property
 	def team_id(self) -> int:
 		return self._team_id
@@ -259,12 +263,12 @@ class PlayerStats:
 
 		return True
 
-	def can_collect(self, last_collect_time: float) -> bool:
-		return time.time() - last_collect_time > self._collect_cooldown_secs
+	def can_collect(self, last_collect_time: float, cooldown_reduction_percent: int) -> bool:
+		return time.time() - last_collect_time > self._collect_cooldown_secs * (1 - cooldown_reduction_percent / 100)
 
-	def get_collect_cooldown(self, last_collect_time: float) -> int:
+	def get_collect_cooldown(self, last_collect_time: float, cooldown_reduction_percent: int) -> int:
 		return math.ceil(
-			self._collect_cooldown_secs -
+			(self._collect_cooldown_secs * (1 - cooldown_reduction_percent / 100)) -
 			(time.time() - last_collect_time)
 		)
 
@@ -281,7 +285,7 @@ class PlayerStats:
 
 		self.save()
 
-	def throw(self, player: "Player") -> tuple[bool, bool]:
+	def throw(self, player: "Player", crit_bonus_percentage: int) -> tuple[bool, bool]:
 		"""
 		:return: Bool (is crit)
 		"""
@@ -290,7 +294,7 @@ class PlayerStats:
 		self._num_thrown += 1
 
 		is_successful = random.random() < self._accuracy_percentage / 100
-		is_critical = random.random() < self._crit_percentage / 100
+		is_critical = random.random() < (self._crit_percentage / 100) * (1 + crit_bonus_percentage / 100)
 
 		if is_successful:
 			self._num_hits += 1

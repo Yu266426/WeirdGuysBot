@@ -14,7 +14,8 @@ IGNORED_MEMBERS = (
 	"ergergerg1159",
 	"teachamantoafish3188",
 	"bernieferdinand",
-	"grandmofftarkin6912"
+	"grandmofftarkin6912",
+	"domeyboy"
 )
 
 CWD = pathlib.Path.cwd()
@@ -22,12 +23,23 @@ DATA_DIR = CWD / "data"
 
 NO_PING = discord.AllowedMentions(everyone=False, users=False, roles=False)
 
-COLLECT_COLOUR = discord.Colour.teal()
+COLLECT_COLOR = discord.Color.teal()
 
-HIT_COLOUR = discord.Colour.blue()
-CRITICAL_HIT_COLOUR = discord.Colour.blurple()
-MISS_COLOUR = discord.Colour.red()
+HIT_COLOR = discord.Color.blue()
+CRITICAL_HIT_COLOR = discord.Color.blurple()
+MISS_COLOR = discord.Color.red()
 
-STATS_COLOUR = discord.Colour.blurple()
+STATS_COLOR = discord.Color.blurple()
 
+TEAMS_COLOR = discord.Color.dark_gold()
+HELP_COLOR = discord.Color.greyple()
+
+# Admin commands
 SIGN_UP_COMMAND_NAME = "sign_up"
+DISTRIBUTE_MEMBERS_COMMAND_NAME = "dist_members"
+
+# General commands
+COLLECT_COMMAND_NAME = "collect"
+THROW_COMMAND_NAME = "throw"
+LEADERBOARD_COMMAND_NAME = "leader"
+STATS_COMMAND_NAME = "stats"

@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from graphics import xp_bar
 from player import Player
 
 
@@ -24,6 +25,26 @@ class TeamGroup:
 
 	def get_player(self, member: discord.Member) -> Player:
 		return self.players[member]
+
+	def get_active_players(self) -> list[Player]:
+		players = []
+		for player in self.players.values():
+			if player.stats.active:
+				players.append(player)
+		return players
+
+	def get_non_active_players(self) -> list[Player]:
+		players = []
+		for player in self.players.values():
+			if not player.stats.active:
+				players.append(player)
+		return players
+
+	def get_players_on_team(self, team_id: int) -> list[Player]:
+		if team_id not in self.teams:
+			return []
+
+		return list(self.teams[team_id].players)
 
 	def check_is_player(self, member: discord.Member) -> bool:
 		return member in self.players
@@ -64,25 +85,106 @@ class TeamGroup:
 		await player.throw(ctx, target_player)
 
 
+class TeamStage:
+	def __init__(
+			self,
+			hits_to_progress: int,
+			xp_bonus: int,
+			crit_bonus_percentage: int,
+			cooldown_reduction_percent: int
+	):
+		self.hits_to_progress = hits_to_progress
+
+		self.xp_bonus = xp_bonus
+		self.crit_bonus_percentage = crit_bonus_percentage
+		self.cooldown_reduction_percent = cooldown_reduction_percent
+
+
 class Team:
 	def __init__(self, allow_friendly_fire: bool = False):
+		self._current_stage_index = 0
+		self.previous_hits_to_progress = 0
+		self._stages = (
+			TeamStage(10, 1, 20, 50),
+			TeamStage(10, 2, 40, 70),
+		)
+
 		self.allow_friendly_fire = allow_friendly_fire
 
 		self.players: set[Player] = set()
 
-	def embed_stats(self, embed: discord.Embed):
-		message = f"Total hits: `{self.get_total_hits()}`"
+		self.total_been_hits = 0
+		self.crit_hits = 0
+		self.crit_hits_progress_effect = 0.5
 
-		embed.add_field(name="Team Stats:", value=message)
+	@property
+	def current_stage(self) -> TeamStage:
+		if self._current_stage_index >= len(self._stages):
+			return self._stages[-1]
+
+		return self._stages[self._current_stage_index]
+
+	def embed_stats(self, embed: discord.Embed):
+		stats_message = f"Num players: `{len(self.players)}`\n"
+		stats_message += f"Total hits: `{self.total_been_hits}`"
+
+		current_stage = self.current_stage
+		bonus_message = f"XP Bonus: `{current_stage.xp_bonus}`\n"
+		bonus_message += f"Crit % 🔺: `{current_stage.crit_bonus_percentage}`\n"
+		bonus_message += f"Cooldown % 🔻: `{current_stage.cooldown_reduction_percent}`"
+
+		stage_progress_message = f"Stage: `{self._current_stage_index + 1}`/`{len(self._stages)}`\n"
+		if self._current_stage_index < len(self._stages):
+			stage_progress_message += "Progress: " + xp_bar(
+				(self.total_been_hits + int(self.crit_hits * self.crit_hits_progress_effect)) - self.previous_hits_to_progress,
+				current_stage.hits_to_progress
+			)
+
+		embed.add_field(name="Team Stats:", value=stats_message)
+		embed.add_field(name="Team Bonuses:", value=bonus_message)
+		embed.add_field(name="Snowman:", value=stage_progress_message)
+
+	def _calculate_stage_index(self):
+		stage_index = 0
+		total_been_hits = self.total_been_hits + int(self.crit_hits * self.crit_hits_progress_effect)
+
+		hits_to_progress = 0
+
+		for stage in self._stages:
+			total_been_hits -= stage.hits_to_progress
+			hits_to_progress += stage.hits_to_progress
+
+			if total_been_hits <= 0:
+				break
+
+			stage_index += 1
+
+		self._current_stage_index = stage_index
+		self._previous_hits_to_progress = hits_to_progress
 
 	def add_player(self, player: Player):
+		player.team = self
 		self.players.add(player)
 
+		self.total_been_hits += player.stats.num_been_hit
+
+		self._calculate_stage_index()
+
 	def remove_player(self, player: Player):
+		player.team = None
 		self.players.remove(player)
 
-	def get_total_hits(self) -> int:
-		total_hits = 0
-		for player in self.players:
-			total_hits += player.stats.num_hits
-		return total_hits
+		self.total_been_hits -= player.stats.num_been_hit
+
+		self._calculate_stage_index()
+
+	def player_on_team_hit(self, critical: bool):
+		self.total_been_hits += 1
+		self.crit_hits += critical
+
+		if self._current_stage_index >= len(self._stages):
+			return
+
+		if (self.total_been_hits + int(self.crit_hits * self.crit_hits_progress_effect)) - self.previous_hits_to_progress > self.current_stage.hits_to_progress:
+			self._current_stage_index += 1
+			self.previous_hits_to_progress += self.current_stage.hits_to_progress
