@@ -4,7 +4,7 @@ import typing
 import discord
 from discord.ext import commands
 
-from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOR, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, COLLECT_COMMAND_NAME, THROW_COMMAND_NAME, LEADERBOARD_COMMAND_NAME, STATS_COMMAND_NAME, TEAMS_COLOR
+from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOR, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, COLLECT_COMMAND_NAME, THROW_COMMAND_NAME, LEADERBOARD_COMMAND_NAME, STATS_COMMAND_NAME, TEAMS_COLOR, GAME_OVER_COLOR
 from graphics import CustomHelpCommand, TeamSignUpView
 from player import Player
 from team import TeamGroup
@@ -96,7 +96,6 @@ async def distribute_members(ctx: commands.Context):
 		player.stats.set_team(1)
 		teams.add_player(player)
 
-		print(player.member.name)
 		non_active_players.remove(player)
 
 	for player in non_active_players:
@@ -147,7 +146,37 @@ async def collect(ctx: commands.Context):
 )
 async def throw(ctx: commands.Context, *, member: typing.Union[discord.Member, str]):
 	if isinstance(member, discord.Member):
-		await teams.throw_for(ctx, ctx.author, member)
+		check_game_over = await teams.throw_for(ctx, ctx.author, member)
+
+		author = teams.get_player(ctx.author)
+		if not author.team.base_team and check_game_over:
+			winning_team_players = teams.get_players_on_team(author.team.id)
+
+			message = f"Team `{author.team.id}` won!\n\n"
+			message += f"Congratulations to:\n"
+
+			for player in winning_team_players:
+				message += f"{player.member.mention}\n"
+
+			message += "\n"
+			message += r"\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\~_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_"
+			message += f"\nMoving everyone to team `0` so the fun can continue!"
+
+			embed = discord.Embed(
+				title="GAME OVER!!!!!!",
+				description=message,
+				colour=GAME_OVER_COLOR
+			)
+
+			players = list(teams.players.values())
+			for player in players:
+				teams.remove_player(player)
+
+			for player in players:
+				player.stats.set_team(0)
+				teams.add_player(player)
+
+			await ctx.send(embed=embed, allowed_mentions=NO_PING)
 	else:
 		await ctx.send(f"Could not find user {member}")
 

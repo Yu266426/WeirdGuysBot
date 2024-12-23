@@ -86,11 +86,11 @@ class Player:
 			)
 			await ctx.message.delete(delay=3)
 
-	async def throw(self, ctx: commands.Context, target: "Player"):
+	async def throw(self, ctx: commands.Context, target: "Player") -> bool:
 		if self.stats.num_snowballs == 0:
 			await ctx.reply(f"{self.member.mention} doesn't have any balls!", delete_after=3)
 			await ctx.message.delete(delay=3)
-			return
+			return False
 
 		is_hit, is_crit = self.stats.throw(target, self.team.current_stage.crit_bonus_percentage)
 
@@ -98,9 +98,15 @@ class Player:
 
 		if is_hit:
 			target.stats.hit(is_crit, self)
-			target.team.player_on_team_hit(is_crit)
+			team_response = target.team.hit_player_on_team(is_crit)
+			if team_response == 2:  # Game over
+				return True
 
-			leveled_up = self.stats.add_xp(1 + self.team.current_stage.xp_bonus)
+			add_xp = random.randint(3, 5) + self.team.current_stage.xp_bonus
+			if is_crit:
+				add_xp += random.randint(2, 3)
+
+			leveled_up = self.stats.add_xp(add_xp)
 
 			message = ""
 			if is_crit:
@@ -109,6 +115,7 @@ class Player:
 			if is_crit:
 				message += " and made them lose their balls!"
 			message += "!\n" + balls_remaining_message
+			message += f"\nGained {add_xp} xp."
 
 			embed = discord.Embed(
 				title=f"{random.choice(("Splat", "Plop", "Thwack", "Smack", "Fwhap"))}!!",
@@ -129,6 +136,9 @@ class Player:
 				)
 				await ctx.reply(embed=level_up_embed, allowed_mentions=NO_PING)
 
+			if team_response:
+				await target.team.send_team_level_up_message(ctx)
+
 		else:
 			embed = discord.Embed(
 				title=f"{random.choice(("Whoosh", "Whiff", "Pfft"))}—",
@@ -137,3 +147,5 @@ class Player:
 			)
 
 			await ctx.reply(embed=embed, allowed_mentions=NO_PING)
+
+		return False

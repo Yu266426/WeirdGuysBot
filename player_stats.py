@@ -13,39 +13,51 @@ if TYPE_CHECKING:
 
 
 class PlayerStats:
-	TOTAL_LEVELS = 5
-	_XP_TO_NEXT_LEVEL = (3, 4, 5, 6)
+	TOTAL_LEVELS = 7
+	_XP_TO_NEXT_LEVEL = (30, 40, 45, 50, 60, 80)
 	_STATS_FOR_LEVEL = {
 		1: {
 			"max_snowballs": 3,
-			"collect_cooldown": 5,
-			"accuracy": 70,
-			"crit": 60,
+			"collect_cooldown": 30,
+			"accuracy": 60,
+			"crit": 30,
 		},
 		2: {
 			"max_snowballs": 4,
-			"collect_cooldown": 4,
-			"accuracy": 75,
-			"crit": 70,
+			"collect_cooldown": 25,
+			"accuracy": 65,
+			"crit": 35,
 		},
 		3: {
 			"max_snowballs": 5,
-			"collect_cooldown": 3,
-			"accuracy": 80,
-			"crit": 80,
+			"collect_cooldown": 20,
+			"accuracy": 70,
+			"crit": 40,
 		},
 		4: {
 			"max_snowballs": 6,
-			"collect_cooldown": 2,
-			"accuracy": 85,
-			"crit": 85,
+			"collect_cooldown": 15,
+			"accuracy": 75,
+			"crit": 45,
 		},
 		5: {
 			"max_snowballs": 7,
-			"collect_cooldown": 1,
-			"accuracy": 90,
-			"crit": 90,
+			"collect_cooldown": 13,
+			"accuracy": 80,
+			"crit": 50,
 		},
+		6: {
+			"max_snowballs": 8,
+			"collect_cooldown": 10,
+			"accuracy": 85,
+			"crit": 55,
+		},
+		7: {
+			"max_snowballs": 10,
+			"collect_cooldown": 5,
+			"accuracy": 90,
+			"crit": 65,
+		}
 	}
 
 	def __init__(self, member: discord.Member):
@@ -65,13 +77,14 @@ class PlayerStats:
 		self._snowball_count = 0
 
 		self._max_snowballs = 3
-		self._collect_cooldown_secs = 5
-		self._accuracy_percentage = 70
-		self._crit_percentage = 60
+		self._collect_cooldown_secs = 30
+		self._accuracy_percentage = 60
+		self._crit_percentage = 30
 
 		self._num_thrown = 0
 		self._num_hits = 0
 		self._num_been_hit = 0
+		self._num_been_crit_hit = 0
 
 		self._hit_by: dict[int, int] = {}
 		self._has_hit: dict[int, int] = {}
@@ -89,6 +102,7 @@ class PlayerStats:
 			"num_thrown": 0,
 			"num_hits": 0,
 			"num_been_hit": 0,
+			"num_been_crit_hit": 0,
 			"hit_by": {},
 			"has_hit": {}
 		}
@@ -125,6 +139,7 @@ class PlayerStats:
 		data["num_thrown"] = self._num_thrown
 		data["num_hits"] = self._num_hits
 		data["num_been_hit"] = self._num_been_hit
+		data["num_been_crit_hit"] = self._num_been_crit_hit
 
 		data["hit_by"] = self._hit_by
 		data["has_hit"] = self._has_hit
@@ -159,6 +174,7 @@ class PlayerStats:
 		self._num_thrown = data["num_thrown"]
 		self._num_hits = data["num_hits"]
 		self._num_been_hit = data["num_been_hit"]
+		self._num_been_crit_hit = data["num_been_crit_hit"]
 
 		self._hit_by = {int(key): value for key, value in data["hit_by"].items()}
 		self._has_hit = {int(key): value for key, value in data["has_hit"].items()}
@@ -223,6 +239,10 @@ class PlayerStats:
 	def num_been_hit(self) -> int:
 		return self._num_been_hit
 
+	@property
+	def num_been_crit_hit(self) -> int:
+		return self._num_been_crit_hit
+
 	def get_hit_by_most(self) -> tuple[int, int]:
 		if len(self._hit_by) != 0:
 			return max(self._hit_by.items(), key=lambda e: e[1])
@@ -282,6 +302,7 @@ class PlayerStats:
 
 		if is_crit:
 			self._snowball_count = 0
+			self._num_been_crit_hit += 1
 
 		self.save()
 

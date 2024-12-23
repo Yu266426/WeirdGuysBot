@@ -35,6 +35,8 @@ LEVEL_UP_COLOR = discord.Color.from_rgb(48, 191, 112)
 TEAMS_COLOR = discord.Color.dark_gold()
 HELP_COLOR = discord.Color.greyple()
 
+GAME_OVER_COLOR = discord.Color.gold()
+
 # Admin commands
 SIGN_UP_COMMAND_NAME = "sign_up"
 DISTRIBUTE_MEMBERS_COMMAND_NAME = "dist_members"
