@@ -159,7 +159,7 @@ async def throw(ctx: commands.Context, *, member: typing.Union[discord.Member, s
 				message += f"{player.member.mention}\n"
 
 			message += "\n"
-			message += r"\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\~_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_"
+			message += r"\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_"
 			message += f"\nMoving everyone to team `0` so the fun can continue!"
 
 			embed = discord.Embed(
