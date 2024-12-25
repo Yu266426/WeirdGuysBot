@@ -4,7 +4,7 @@ import typing
 import discord
 from discord.ext import commands
 
-from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOR, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, COLLECT_COMMAND_NAME, THROW_COMMAND_NAME, LEADERBOARD_COMMAND_NAME, STATS_COMMAND_NAME, TEAMS_COLOR, GAME_OVER_COLOR
+from consts import BOT_API, WEIRD_GUYS_GUILD_ID, IGNORED_MEMBERS, NO_PING, COMMAND_PREFIX, STATS_COLOR, SIGN_UP_COMMAND_NAME, DISTRIBUTE_MEMBERS_COMMAND_NAME, COLLECT_COMMAND_NAME, THROW_COMMAND_NAME, LEADERBOARD_COMMAND_NAME, STATS_COMMAND_NAME, TEAMS_COLOR, GAME_OVER_COLOR, WEIRD_BALLS_CHANNEL_ID, ANNOUNCEMENTS_CHANNEL_ID
 from graphics import CustomHelpCommand, TeamSignUpView
 from player import Player
 from team import TeamGroup
@@ -20,7 +20,7 @@ teams = TeamGroup()
 
 @bot.check
 async def predicate(ctx: commands.Context):
-	return ctx.channel.name in ("weird-bots",)  # TODO: Add "weird-balls" when it is time
+	return ctx.channel.name in ("weird-bots", "weird-balls")
 
 
 @bot.event
@@ -37,18 +37,45 @@ async def on_ready():
 	print(f'Logged in as {bot.user}')
 
 
-@bot.command()
-async def ping(ctx: commands.Context):
-	message = f"This message is in channel: {ctx.channel}\n"
-	message += f"The author is owner: {await bot.is_owner(ctx.author)}\n"
-	message += f"The author is on team: {teams.get_player(ctx.author).stats.team_id}"
-	await ctx.send(message)
+# @bot.command()
+# async def ping(ctx: commands.Context):
+# 	message = f"This message is in channel: {ctx.channel}\n"
+# 	message += f"The author is owner: {await bot.is_owner(ctx.author)}\n"
+# 	message += f"The author is on team: {teams.get_player(ctx.author).stats.team_id}"
+# 	await ctx.send(message)
 
 
 @bot.command(name=SIGN_UP_COMMAND_NAME)
 @commands.is_owner()
 async def sign_up(ctx: commands.Context):
-	await ctx.send("Press the button to sign up as active member: ", view=TeamSignUpView(teams))
+	channel = ctx.guild.get_channel(ANNOUNCEMENTS_CHANNEL_ID)
+
+	message = """
+@everyone
+Happy Holidays! Do you want to build a snowman?
+Tomorrow at <t:1735156800:t> we will be having an *epic* snowball showdown.
+
+Here's how it's gonna go. We have 2 main commands to worry about:
+> `!collect` will give you a snowball
+> `!throw <target>` will throw your snowball at a target
+
+By hitting players on the other team, you will grow their **snowman**. The first team to complete the other team's snowman will win!
+But be careful! The larger their snowman gets, the stronger their team will be.
+Win quick, and win decisively.
+
+There is a button below for you to sign up as an active member. Please show up 🙏.
+
+Other commands you can use include:
+> `!help` to see information about all the commands
+> `!help <command>` for help about a specific command
+> 
+> `!stats` for stats about yourself
+> `!stats <target>` for stats about someone else
+> `!leader` to see the top 3 players on the leaderboard
+"""
+
+	await channel.send(message)
+	await channel.send("Press the button to sign up as active member: ", view=TeamSignUpView(teams))
 
 
 @bot.command(name=DISTRIBUTE_MEMBERS_COMMAND_NAME)
@@ -129,8 +156,30 @@ async def distribute_members(ctx: commands.Context):
 		color=TEAMS_COLOR
 	)
 
-	await ctx.send(embed=team_1_embed, allowed_mentions=NO_PING)
-	await ctx.send(embed=team_2_embed, allowed_mentions=NO_PING)
+	# Send teams announcement
+	announcements_channel = ctx.guild.get_channel(ANNOUNCEMENTS_CHANNEL_ID)
+	balls_channel = ctx.guild.get_channel(WEIRD_BALLS_CHANNEL_ID)
+
+	message = f"""
+@everyone
+Get ready!
+Here are your teams!
+Start throwing in {balls_channel.mention}!
+
+P.S. Hit the *other* team.
+"""
+
+	await announcements_channel.send(message)
+	await announcements_channel.send(embed=team_1_embed)
+	await announcements_channel.send(embed=team_2_embed)
+
+	# Open up the weird_balls channel to everyone
+	role = ctx.guild.default_role
+
+	overwrite = balls_channel.overwrites_for(role)
+	overwrite.view_channel = True
+
+	await balls_channel.set_permissions(role, overwrite=overwrite)
 
 
 @bot.command(name=COLLECT_COMMAND_NAME, help="Collects a snowball")
