@@ -226,8 +226,9 @@ async def throw(ctx: commands.Context, *, member: typing.Union[discord.Member, s
 				teams.add_player(player)
 
 			await ctx.send(embed=embed, allowed_mentions=NO_PING)
+			await ctx.guild.get_channel(ANNOUNCEMENTS_CHANNEL_ID).send(embed=embed, allowed_mentions=NO_PING)
 	else:
-		await ctx.send(f"Could not find user {member}")
+		await ctx.send(f"Could not find user {member}", allowed_mentions=NO_PING)
 
 
 @bot.command(name=LEADERBOARD_COMMAND_NAME, help="Prints top 3 player stats")
@@ -290,7 +291,7 @@ async def stats(ctx: commands.Context, target: typing.Optional[typing.Union[disc
 			await ctx.send(embed=embed, allowed_mentions=NO_PING)
 
 		else:
-			await ctx.send(f"Could not find target {target}", ephemeral=True)
+			await ctx.send(f"Could not find target {target}", allowed_mentions=NO_PING)
 
 
 bot.run(BOT_API)
